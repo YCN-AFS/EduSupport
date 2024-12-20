@@ -163,6 +163,29 @@ function handleQRCode(data) {
     try {
         console.log('QR Data received:', data);
         
+        // Kiểm tra nếu data là URL hợp lệ
+        if (isValidUrl(data)) {
+            const contentPreview = document.getElementById('content-preview');
+            contentPreview.innerHTML = `
+                <div class="iframe-container">
+                    <iframe 
+                        src="${data}"
+                        frameborder="0"
+                        width="100%"
+                        height="500px"
+                        allowfullscreen="true"
+                        mozallowfullscreen="true"
+                        webkitallowfullscreen="true">
+                    </iframe>
+                    <div class="iframe-controls">
+                        <button class="btn-fullscreen" onclick="window.open('${data}', '_blank')">
+                            <i class="fas fa-expand"></i> Xem toàn màn hình
+                        </button>
+                    </div>
+                </div>`;
+            return;
+        }
+        
         // Tìm kiếm content theo ID
         const contentItem = window.findContentById(data);
         
@@ -176,7 +199,7 @@ function handleQRCode(data) {
                     url: contentItem.content
                 });
             } else {
-                // Nếu không phải URL, hiển thị như text
+                // Xử lý nội dung text như cũ
                 const contentPreview = document.getElementById('content-preview');
                 contentPreview.innerHTML = `
                     <div class="content-text">
@@ -215,6 +238,16 @@ function handleQRCode(data) {
                 <p>Không thể xử lý nội dung. Vui lòng thử lại.</p>
                 <small>Lỗi: ${e.message}</small>
             </div>`;
+    }
+}
+
+// Thêm hàm kiểm tra URL hợp lệ
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
     }
 }
 
@@ -372,7 +405,7 @@ function showContent(content) {
             break;
 
         default:
-            // Thử hiển th như một URL thông thường
+            // Thử hiển thị như một URL thông thường
             contentPreview.innerHTML = `
                 <div class="slides-container">
                     <iframe 
