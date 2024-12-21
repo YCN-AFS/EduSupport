@@ -97,10 +97,10 @@
                 // Tạo timestamp để tránh cache
                 const timestamp = new Date().getTime();
                 
-                // Gửi request với timestamp và mode no-cors
-                await fetch(`${GOOGLE_SCRIPT_URL}?t=${timestamp}`, {
+                // Gửi request và đợi response
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?t=${timestamp}`, {
                     method: 'POST',
-                    mode: 'no-cors', // Thêm lại mode no-cors
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -113,9 +113,14 @@
                 // Đợi 1 giây để đảm bảo dữ liệu đã được lưu
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                // Tạo mã QR với timestamp làm ID tạm thời
+                // Lấy ID mới nhất từ Google Sheet
+                const idResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getLatestID`);
+                const idData = await idResponse.json();
+                const newID = idData.id;
+
+                // Tạo mã QR với ID
                 const qrImage = document.createElement('img');
-                qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(lessonName)}&size=256x256`;
+                qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(newID)}&size=256x256`;
                 document.getElementById('qrcode').appendChild(qrImage);
 
                 // Clear input fields

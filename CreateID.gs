@@ -64,7 +64,7 @@ function handleResponse(e) {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
     'Access-Control-Max-Age': '3600',
-    'Content-Type': 'text/plain'
+    'Content-Type': 'application/json'
   };
 
   try {
@@ -79,37 +79,43 @@ function handleResponse(e) {
       throw new Error('Không tìm thấy sheet "QR-management"');
     }
     
-    if (!e.postData) {
-      throw new Error('No data received');
+    if (e.parameter.action === 'getLatestID') {
+      const lastRow = sheet.getLastRow();
+      const latestID = sheet.getRange(lastRow, 1).getValue();
+      return ContentService.createTextOutput(JSON.stringify({id: latestID}))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders(headers);
     }
-
-    const data = JSON.parse(e.postData.contents);
     
-    // Tạo ID mới
-    const lastRow = sheet.getLastRow();
-    const newID = generateNextID(lastRow, sheet);
-    
-    // Tạo công thức QR cho Google Sheet
-    const qrFormula = `=IMAGE("http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(newID)}&size=100x100";3)`;
-    
-    // Lưu dữ liệu
-    sheet.appendRow([
-      newID,
-      data.name,
-      data.content,
-      qrFormula
-    ]);
-    
-    SpreadsheetApp.flush();
-    
-    return ContentService.createTextOutput('Success')
-      .setMimeType(ContentService.MimeType.TEXT)
-      .setHeaders(headers);
+    if (e.postData) {
+      const data = JSON.parse(e.postData.contents);
+      
+      // Tạo ID mới
+      const lastRow = sheet.getLastRow();
+      const newID = generateNextID(lastRow, sheet);
+      
+      // Tạo công thức QR cho Google Sheet
+      const qrFormula = `=IMAGE("http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(newID)}&size=100x100";3)`;
+      
+      // Lưu dữ liệu
+      sheet.appendRow([
+        newID,
+        data.name,
+        data.content,
+        qrFormula
+      ]);
+      
+      SpreadsheetApp.flush();
+      
+      return ContentService.createTextOutput(JSON.stringify({success: true, id: newID}))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders(headers);
+    }
     
   } catch (error) {
     console.error('Error:', error);
-    return ContentService.createTextOutput('Error: ' + error.toString())
-      .setMimeType(ContentService.MimeType.TEXT)
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON)
       .setHeaders(headers);
   }
 }
