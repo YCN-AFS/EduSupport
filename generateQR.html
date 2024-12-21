@@ -96,11 +96,12 @@
             </div>
 
             <div class="qr-container">
-                <textarea class="qr-input" id="qrText" placeholder="Nhập nội dung cần tạo mã QR..." rows="4"></textarea>
+                <input type="text" class="qr-input" id="lessonName" placeholder="Nhập tên bài học..." style="margin-bottom: 1rem;">
+                <textarea class="qr-input" id="lessonContent" placeholder="Nhập nội dung bài học..." rows="4"></textarea>
                 
                 <div class="qr-buttons">
-                    <button class="qr-button" onclick="generateQR()">
-                        <i class="fas fa-qrcode"></i> Tạo mã QR
+                    <button class="qr-button" onclick="generateQRAndSave()">
+                        <i class="fas fa-qrcode"></i> Tạo mã QR và Lưu
                     </button>
                     <button class="qr-button" onclick="downloadQR()">
                         <i class="fas fa-download"></i> Tải xuống
@@ -119,20 +120,54 @@
     <script src="auth.js"></script>
     <script>
         let qrcode = null;
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiK3z-qAD2kB20du0flxjd2YrKBFB275hnnAgpkiL3Xx4HDb89aNXGIoFrXXQgwBTt4Q/exec'; // Thay thế bằng URL của Google Script của bạn
 
-        function generateQR() {
-            const text = document.getElementById('qrText').value;
-            if (!text) {
-                alert('Vui lòng nhập nội dung cần tạo mã QR!');
+        async function generateQRAndSave() {
+            const lessonName = document.getElementById('lessonName').value;
+            const lessonContent = document.getElementById('lessonContent').value;
+            
+            if (!lessonName || !lessonContent) {
+                alert('Vui lòng nhập đầy đủ tên và nội dung bài học!');
                 return;
             }
 
-            document.getElementById('qrcode').innerHTML = '';
-            qrcode = new QRCode(document.getElementById('qrcode'), {
-                text: text,
-                width: 256,
-                height: 256
-            });
+            try {
+                // Gửi dữ liệu đến Google Sheets và nhận về ID mới
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: lessonName,
+                        content: lessonContent,
+                        qrcode: '' // Thêm trường này nếu cần
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+
+                // Tạo mã QR từ ID
+                document.getElementById('qrcode').innerHTML = '';
+                qrcode = new QRCode(document.getElementById('qrcode'), {
+                    text: result.id,
+                    width: 256,
+                    height: 256
+                });
+
+                alert('Đã lưu thông tin thành công!');
+            } catch (error) {
+                console.error('Lỗi khi lưu dữ liệu:', error);
+                alert('Có lỗi xảy ra khi lưu dữ liệu: ' + error.message);
+            }
         }
 
         function downloadQR() {
