@@ -114,13 +114,23 @@
                 <div id="qrcode"></div>
                 <div id="successMessage" class="success-message">Đã sao chép mã QR vào bộ nhớ tạm!</div>
             </div>
+
+            <!-- Thêm tiêu đề và Google Sheets iframe -->
+            <div style="margin-top: 2rem;">
+                <h2 style="margin-bottom: 1rem; color: var(--primary-color);">Các mã QR đã tạo</h2>
+                <iframe 
+                    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSathz-3U6YIcIPCvRO_AEdQ8Uzy7G8-Bdd0zQBhewtsr9zEtVQGLmMniuSczaKIa4RxkNCW5x3KUnN/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false"
+                    style="width: 100%; height: 500px; border: none; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </iframe>
+            </div>
+            
         </div>
     </div>
 
     <script src="auth.js"></script>
     <script>
         let qrcode = null;
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxau7pAj-eU6h6ODbgvADmdOxvN5leXPUBYoDjHnAgaXNKs7GLQvE9mdfGb18ZD_8RaSw/exec'; // Thay thế bằng URL của Google Script của bạn
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiK3z-qAD2kB20du0flxjd2YrKBFB275hnnAgpkiL3Xx4HDb89aNXGIoFrXXQgwBTt4Q/exec'; // Thay thế bằng URL của Google Script của bạn
 
         async function generateQRAndSave() {
             const lessonName = document.getElementById('lessonName').value;
@@ -132,18 +142,17 @@
             }
 
             try {
-                // Thêm tham số để tránh cache
-                const url = `${GOOGLE_SCRIPT_URL}?timestamp=${new Date().getTime()}`;
-                
-                const response = await fetch(url, {
+                // Gửi dữ liệu đến Google Sheets và nhận về ID mới
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         name: lessonName,
                         content: lessonContent,
-                        qrcode: ''
+                        qrcode: '' // Thêm trường này nếu cần
                     })
                 });
 
