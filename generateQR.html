@@ -7,58 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="static\css\teacher.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        .qr-container {
-            padding: 2rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 2rem auto;
-            max-width: 600px;
-        }
-
-        .qr-input {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        .qr-buttons {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .qr-button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            background: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .qr-button:hover {
-            opacity: 0.9;
-        }
-
-        #qrcode {
-            margin: 2rem auto;
-            text-align: center;
-        }
-
-        .success-message {
-            color: green;
-            margin-top: 1rem;
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="static/css/generateQR.css">
 </head>
 <body>
     <!-- Giữ nguyên phần Navigation từ teacher.html -->
@@ -119,7 +68,7 @@
             <div style="margin-top: 2rem;">
                 <h2 style="margin-bottom: 1rem; color: var(--primary-color);">Các mã QR đã tạo</h2>
                 <iframe 
-                    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSathz-3U6YIcIPCvRO_AEdQ8Uzy7G8-Bdd0zQBhewtsr9zEtVQGLmMniuSczaKIa4RxkNCW5x3KUnN/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false"
+                    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSathz-3U6YIcIPCvRO_AEdQ8Uzy7G8-Bdd0zQBhewtsr9zEtVQGLmMniuSczaKIa4RxkNCW5x3KUnN/pubhtml?widget=true&amp;headers=false"
                     style="width: 100%; height: 500px; border: none; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 </iframe>
             </div>
@@ -130,7 +79,7 @@
     <script src="auth.js"></script>
     <script>
         let qrcode = null;
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiK3z-qAD2kB20du0flxjd2YrKBFB275hnnAgpkiL3Xx4HDb89aNXGIoFrXXQgwBTt4Q/exec'; // Thay thế bằng URL của Google Script của bạn
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCjXVjXF9n-BGS2gxjxbOzHE4UM0TXHiWxaHqJVS3yy2A1phOm0BIGfRWmhiwVfzrDAA/exec'; // Thay thế bằng URL của Google Script của bạn
 
         async function generateQRAndSave() {
             const lessonName = document.getElementById('lessonName').value;
@@ -142,38 +91,42 @@
             }
 
             try {
-                // Gửi dữ liệu đến Google Sheets và nhận về ID mới
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                // Xóa mã QR cũ
+                document.getElementById('qrcode').innerHTML = '';
+
+                // Tạo timestamp để tránh cache
+                const timestamp = new Date().getTime();
+                
+                // Gửi request với timestamp và mode no-cors
+                await fetch(`${GOOGLE_SCRIPT_URL}?t=${timestamp}`, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'no-cors', // Thêm lại mode no-cors
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         name: lessonName,
-                        content: lessonContent,
-                        qrcode: '' // Thêm trường này nếu cần
+                        content: lessonContent
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                // Đợi 1 giây để đảm bảo dữ liệu đã được lưu
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
-                const result = await response.json();
-                if (!result.success) {
-                    throw new Error(result.error || 'Unknown error occurred');
-                }
+                // Tạo mã QR với timestamp làm ID tạm thời
+                const qrImage = document.createElement('img');
+                qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(lessonName)}&size=256x256`;
+                document.getElementById('qrcode').appendChild(qrImage);
 
-                // Tạo mã QR từ ID
-                document.getElementById('qrcode').innerHTML = '';
-                qrcode = new QRCode(document.getElementById('qrcode'), {
-                    text: result.id,
-                    width: 256,
-                    height: 256
-                });
+                // Clear input fields
+                document.getElementById('lessonName').value = '';
+                document.getElementById('lessonContent').value = '';
 
                 alert('Đã lưu thông tin thành công!');
+                
+                // Refresh iframe
+                refreshIframe();
+                
             } catch (error) {
                 console.error('Lỗi khi lưu dữ liệu:', error);
                 alert('Có lỗi xảy ra khi lưu dữ liệu: ' + error.message);
@@ -181,27 +134,28 @@
         }
 
         function downloadQR() {
-            if (!qrcode) {
+            const qrImage = document.querySelector('#qrcode img');
+            if (!qrImage) {
                 alert('Vui lòng tạo mã QR trước!');
                 return;
             }
 
-            const canvas = document.querySelector('#qrcode canvas');
             const link = document.createElement('a');
             link.download = 'qrcode.png';
-            link.href = canvas.toDataURL();
+            link.href = qrImage.src;
             link.click();
         }
 
         async function copyQR() {
-            if (!qrcode) {
+            const qrImage = document.querySelector('#qrcode img');
+            if (!qrImage) {
                 alert('Vui lòng tạo mã QR trước!');
                 return;
             }
 
-            const canvas = document.querySelector('#qrcode canvas');
             try {
-                const blob = await new Promise(resolve => canvas.toBlob(resolve));
+                const response = await fetch(qrImage.src);
+                const blob = await response.blob();
                 await navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob })
                 ]);
@@ -212,6 +166,14 @@
                 }, 2000);
             } catch (err) {
                 alert('Không thể sao chép mã QR: ' + err);
+            }
+        }
+
+        function refreshIframe() {
+            const iframe = document.querySelector('iframe');
+            if (iframe) {
+                const timestamp = new Date().getTime();
+                iframe.src = iframe.src.split('?')[0] + `?widget=true&headers=false&t=${timestamp}`;
             }
         }
 

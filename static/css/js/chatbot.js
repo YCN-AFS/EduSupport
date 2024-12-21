@@ -2,7 +2,7 @@
     // ===== CẤU HÌNH CHÍNH =====
     const CONFIG = {
         // API Key Gemini - Thay thế key của bạn vào đây
-        GEMINI_API_KEY: 'API-KEY-GEMINI-HERE',
+        GEMINI_API_KEY: 'AIzaSyAKBq72Bt3hF6HkbniRInElmvq8T_y233Q',
         
         // Cấu hình AI
         AI_CONFIG: {
@@ -30,7 +30,7 @@
         
         // Chat bubble (icon)
         bubbleSize: '60px',
-        bubbleImage: 'https://friendsofanimals.org/wp-content/uploads/2023/12/foxactualweb.png',
+        bubbleImage: 'https://www.dropbox.com/scl/fi/zupsiqsdbf0q7206nv040/_ca2e6412-78f6-452d-b011-4a5a46ef50d6.jpg?rlkey=ksf1c93o6km0vqutm2tghqu0o&st=30wypewm&dl=1',
         
         // Messages
         userMessageColor: '#0083b0',
@@ -41,7 +41,7 @@
         // Avatars
         avatarSize: '30px',
         userAvatar: 'https://t3.ftcdn.net/jpg/06/77/68/40/360_F_677684059_skndNiKKdoa1JuJDBdpBP1prZv1ZvNz7.jpg',
-        botAvatar: 'https://i.pinimg.com/originals/d5/2e/95/d52e95a9f226c53c92058d83fb86118a.jpg',
+        botAvatar: 'https://www.dropbox.com/scl/fi/zupsiqsdbf0q7206nv040/_ca2e6412-78f6-452d-b011-4a5a46ef50d6.jpg?rlkey=ksf1c93o6km0vqutm2tghqu0o&st=30wypewm&dl=1',
         
         // Font
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -123,7 +123,7 @@
     chatWindow.innerHTML = `
         <div style="background: ${THEME.primaryGradient}; color: white; padding: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>AI Assistant</span>
+                <span>Trợ lý học tập EduSupport</span>
                 <span id="close-chat" style="cursor: pointer; font-size: 20px;">×</span>
             </div>
         </div>
@@ -132,14 +132,22 @@
             <textarea id="chat-text" 
                 style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; resize: none; margin-right: 10px; font-size: ${THEME.fontSize};" 
                 rows="1" 
-                placeholder="Type your message..."
+                placeholder="Nhập tin nhắn của bạn..."
             ></textarea>
             <button id="send-btn" 
                 style="padding: 8px 20px; background: ${THEME.primaryGradient}; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">
-                Send
+                Gửi
             </button>
         </div>
     `;
+
+    // Thêm biến lưu trữ lịch sử chat
+    let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+    // Thêm hàm lưu chatHistory
+    function saveChatHistory() {
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    }
 
     // Hàm tạo tin nhắn
     function appendMessage(sender, message) {
@@ -165,12 +173,23 @@
         messageElement.appendChild(bubble);
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Lưu vào localStorage sau khi append
+        saveChatHistory();
     }
 
     // Hàm gọi API Gemini
     async function fetchGeminiResponse(userMessage) {
         try {
-            const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\nUser: ${userMessage}\nAssistant:`;
+            // Thêm tin nhắn mới vào lịch sử
+            chatHistory.push({ role: "user", content: userMessage });
+            
+            // Tạo prompt với toàn bộ lịch sử
+            const messages = chatHistory.map(msg => 
+                `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+            ).join('\n');
+            
+            const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\n${messages}\nAssistant:`;
 
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
                 method: "POST",
@@ -189,13 +208,25 @@
 
             const data = await response.json();
             if (data.candidates && data.candidates[0].content.parts[0]) {
-                return data.candidates[0].content.parts[0].text;
+                const botResponse = data.candidates[0].content.parts[0].text;
+                // Lưu câu trả lời của bot vào lịch sử
+                chatHistory.push({ role: "assistant", content: botResponse });
+                return botResponse;
             }
             return "Xin lỗi, tôi không thể trả lời lúc này.";
         } catch (error) {
             console.error("Error fetching Gemini response:", error);
             return "Đã xảy ra lỗi khi xử lý yêu cầu của bạn.";
         }
+    }
+
+    // Thêm hàm để load lịch sử chat khi mở chatbot
+    function loadChatHistory() {
+        const messages = chatHistory;
+        chatMessages.innerHTML = ''; // Clear current messages
+        messages.forEach(msg => {
+            appendMessage(msg.role === 'user' ? 'You' : 'Bot', msg.content);
+        });
     }
 
     // Thêm các elements vào document
@@ -205,6 +236,9 @@
     // Thêm event listeners
     chatBubble.addEventListener('click', () => {
         chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
+        if (chatWindow.style.display === 'flex') {
+            loadChatHistory();
+        }
     });
 
     document.getElementById('close-chat').addEventListener('click', () => {

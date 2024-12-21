@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchSheet
         .fetch({
             gSheetId: "1Ou0lWPoS4saNYh8stySSpJc_A3kw9WgZY8JLPWIbv9M",
-            wSheetName: "Trang tính1",
+            wSheetName: "QR-management",
         })
         .then((rows) => {
             contentData = rows;

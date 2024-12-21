@@ -4,50 +4,95 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+function insertDataAtTop(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QR-management');
+  if (!sheet) {
+    throw new Error('Không tìm thấy sheet "QR-management"');
+  }
+
+  // Tạo ID mới dựa trên dữ liệu hiện có
+  const lastID = sheet.getRange("A2").getValue() || "AA0000";
+  const newID = generateNextID(2, sheet); // Bắt đầu từ hàng 2
+
+  // Tạo công thức QR
+  const qrFormula = `=IMAGE("http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(newID)}&size=100x100";3)`;
+
+  // Di chuyển tất cả dữ liệu xuống 1 hàng
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    const range = sheet.getRange(2, 1, lastRow - 1, 4);
+    range.moveTo(sheet.getRange(3, 1));
+  }
+
+  // Chèn dữ liệu mới vào hàng thứ 2
+  sheet.getRange(2, 1, 1, 4).setValues([[
+    newID,
+    data.name,
+    data.content,
+    qrFormula
+  ]]);
+
+  SpreadsheetApp.flush();
+  return newID;
+}
+
+function generateNextID(row, sheet) {
+  const lastID = sheet.getRange("A" + row).getValue() || "AA0000";
+  const letters = lastID.match(/[A-Z]+/)[0];
+  const numbers = parseInt(lastID.match(/\d+/)[0]);
+  
+  let nextNumber = numbers + 1;
+  let nextLetters = letters;
+  
+  if (nextNumber > 9999) {
+    nextNumber = 1;
+    let lastChar = letters.charAt(1);
+    let firstChar = letters.charAt(0);
+    
+    if (lastChar === 'Z') {
+      firstChar = String.fromCharCode(firstChar.charCodeAt(0) + 1);
+      lastChar = 'A';
+    } else {
+      lastChar = String.fromCharCode(lastChar.charCodeAt(0) + 1);
+    }
+    nextLetters = firstChar + lastChar;
+  }
+  
+  return nextLetters + nextNumber.toString().padStart(4, '0');
+}
+
 function doPost(e) {
-  const CONFIG = {
-    GEMINI_API_KEY: 'YOUR_API_KEY_HERE',
-    AI_CONFIG: {
-      temperature: 0.7,
-      maxOutputTokens: 200,
-      topP: 0.8,
-      topK: 40
-    },
-    SYSTEM_PROMPT: "Bạn là một trợ lý Hệ Thống Hỗ Trợ Học Tập thân thiện của EduSupport dành cho học sinh Trung Học Cơ Sở. Hãy trả lời về chủ đề học tập ngắn gọn, rõ ràng và thân thiện. Nếu người dùng hỏi bằng tiếng Việt, hãy trả lời bằng tiếng Việt."
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    'Access-Control-Max-Age': '3600',
+    'Content-Type': 'application/json'
   };
 
   try {
-    const userMessage = JSON.parse(e.postData.contents).message;
-    const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\nUser: ${userMessage}\nAssistant:`;
-    
-    const response = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': CONFIG.GEMINI_API_KEY
-      },
-      payload: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: fullPrompt
-          }]
-        }],
-        generationConfig: CONFIG.AI_CONFIG
-      })
-    });
-    
-    const data = JSON.parse(response.getContentText());
-    const aiResponse = data.candidates[0].content.parts[0].text;
+    if (e.method === 'OPTIONS') {
+      return ContentService.createTextOutput('')
+        .setMimeType(ContentService.MimeType.TEXT)
+        .setHeaders(headers);
+    }
+
+    const data = JSON.parse(e.postData.contents);
+    const newID = insertDataAtTop(data);
     
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      response: aiResponse
-    })).setMimeType(ContentService.MimeType.JSON);
+      id: newID
+    }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders(headers);
     
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders(headers);
   }
 } 

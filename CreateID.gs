@@ -50,50 +50,94 @@ function onOpen() {
     .addToUi();
 }
 
+function doGet(e) {
+  return handleResponse(e);
+}
+
 function doPost(e) {
-  // Thêm headers cho CORS - cập nhật origin cụ thể
-  var headers = {
-    'Access-Control-Allow-Origin': 'https://ycn-afs.github.io',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
+  return handleResponse(e);
+}
+
+function handleResponse(e) {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    'Access-Control-Max-Age': '3600',
+    'Content-Type': 'text/plain'
   };
 
-  // Xử lý OPTIONS request (preflight)
-  if (e.method == 'OPTIONS') {
-    return ContentService.createTextOutput('')
-      .setMimeType(ContentService.MimeType.TEXT)
-      .setHeaders(headers);
-  }
-
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Trang tính 1');
+    if (e.method === 'OPTIONS') {
+      return ContentService.createTextOutput('')
+        .setMimeType(ContentService.MimeType.TEXT)
+        .setHeaders(headers);
+    }
+
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QR-management');
+    if (!sheet) {
+      throw new Error('Không tìm thấy sheet "QR-management"');
+    }
+    
+    if (!e.postData) {
+      throw new Error('No data received');
+    }
+
     const data = JSON.parse(e.postData.contents);
     
     // Tạo ID mới
-    const newID = generateUniqueID();
+    const lastRow = sheet.getLastRow();
+    const newID = generateNextID(lastRow, sheet);
     
-    // Lưu dữ liệu với ID mới
+    // Tạo công thức QR cho Google Sheet
+    const qrFormula = `=IMAGE("http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(newID)}&size=100x100";3)`;
+    
+    // Lưu dữ liệu
     sheet.appendRow([
-      newID,           // Cột A: ID
-      data.name,       // Cột B: Tên bài học
-      data.content,    // Cột C: Nội dung
-      data.qrcode      // Cột D: URL của QR code
+      newID,
+      data.name,
+      data.content,
+      qrFormula
     ]);
     
-    // Trả về ID mới cho client với headers CORS
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      id: newID
-    }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(headers);
+    SpreadsheetApp.flush();
+    
+    return ContentService.createTextOutput('Success')
+      .setMimeType(ContentService.MimeType.TEXT)
+      .setHeaders(headers);
+    
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      error: error.toString()
-    }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(headers);
+    console.error('Error:', error);
+    return ContentService.createTextOutput('Error: ' + error.toString())
+      .setMimeType(ContentService.MimeType.TEXT)
+      .setHeaders(headers);
   }
+}
+
+// Hàm hỗ trợ tạo ID mới
+function generateNextID(lastRow, sheet) {
+  if (lastRow < 2) return "AA0001";
+  
+  const lastID = sheet.getRange(lastRow, 1).getValue();
+  const letters = lastID.match(/[A-Z]+/)[0];
+  const numbers = parseInt(lastID.match(/\d+/)[0]);
+  
+  let nextNumber = numbers + 1;
+  let nextLetters = letters;
+  
+  if (nextNumber > 9999) {
+    nextNumber = 1;
+    let lastChar = letters.charAt(1);
+    let firstChar = letters.charAt(0);
+    
+    if (lastChar === 'Z') {
+      firstChar = String.fromCharCode(firstChar.charCodeAt(0) + 1);
+      lastChar = 'A';
+    } else {
+      lastChar = String.fromCharCode(lastChar.charCodeAt(0) + 1);
+    }
+    nextLetters = firstChar + lastChar;
+  }
+  
+  return nextLetters + nextNumber.toString().padStart(4, '0');
 }
