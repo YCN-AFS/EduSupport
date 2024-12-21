@@ -2,22 +2,52 @@
 const sampleAccounts = {
     teachers: [
         {
-            email: "teacher@edu.com",
+            email: "nguyenhuuvan@gmail.com",
             password: "teacher123",
-            name: "Nguyễn Văn A",
+            name: "Nguyễn Hữu Văn",
             role: "teacher",
             teacherId: "GV001"
+        },
+        {
+            email: "phamthibich@gmail.com",
+            password: "bichteacher2024",
+            name: "Phạm Thị Bích",
+            role: "teacher",
+            teacherId: "GV002"
+        },
+        {
+            email: "tranminhdung@gmail.com",
+            password: "teacherpro123",
+            name: "Trần Minh Dũng",
+            role: "teacher",
+            teacherId: "GV003"
         }
     ],
     students: [
         {
-            email: "student@edu.com",
+            email: "ngocnhi732@gmail.com",
             password: "student123",
-            name: "Trần Thị B",
-            role: "student"
+            name: "Trần Ngọc Nhi",
+            role: "student",
+        
+        },
+        {
+            email: "lehoanganh@gmail.com",
+            password: "hoanganh2024",
+            name: "Lê Hoàng Anh",
+            role: "student",
+
+        },
+        {
+            email: "phamthiyen@gmail.com",
+            password: "yenpham123",
+            name: "Phạm Thị Yến",
+            role: "student",
+
         }
     ]
 };
+
 
 // Lưu tài khoản mẫu vào localStorage khi trang web được tải
 if (!localStorage.getItem('accounts')) {
