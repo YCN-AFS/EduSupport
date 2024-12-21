@@ -51,9 +51,9 @@ function onOpen() {
 }
 
 function doPost(e) {
-  // Thêm headers cho CORS
+  // Thêm headers cho CORS - cập nhật origin cụ thể
   var headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://ycn-afs.github.io',
     'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400'

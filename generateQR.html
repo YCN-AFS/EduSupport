@@ -120,7 +120,7 @@
     <script src="auth.js"></script>
     <script>
         let qrcode = null;
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiK3z-qAD2kB20du0flxjd2YrKBFB275hnnAgpkiL3Xx4HDb89aNXGIoFrXXQgwBTt4Q/exec'; // Thay thế bằng URL của Google Script của bạn
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxau7pAj-eU6h6ODbgvADmdOxvN5leXPUBYoDjHnAgaXNKs7GLQvE9mdfGb18ZD_8RaSw/exec'; // Thay thế bằng URL của Google Script của bạn
 
         async function generateQRAndSave() {
             const lessonName = document.getElementById('lessonName').value;
@@ -132,17 +132,18 @@
             }
 
             try {
-                // Gửi dữ liệu đến Google Sheets và nhận về ID mới
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                // Thêm tham số để tránh cache
+                const url = `${GOOGLE_SCRIPT_URL}?timestamp=${new Date().getTime()}`;
+                
+                const response = await fetch(url, {
                     method: 'POST',
-                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         name: lessonName,
                         content: lessonContent,
-                        qrcode: '' // Thêm trường này nếu cần
+                        qrcode: ''
                     })
                 });
 
