@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Mã QR - EduSupport</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="static\css\teacher.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .qr-container {
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+
+        .qr-input {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .qr-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .qr-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qr-button:hover {
+            opacity: 0.9;
+        }
+
+        #qrcode {
+            margin: 2rem auto;
+            text-align: center;
+        }
+
+        .success-message {
+            color: green;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Giữ nguyên phần Navigation từ teacher.html -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-graduation-cap"></i>
+                <span>EduSupport - Quản Lý</span>
+            </a>
+        </div>
+        <div class="nav-profile">
+            <span id="teacherName">Xin chào, Giáo viên</span>
+            <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><i class="fas fa-home"></i> Tổng quan</a></li>
+                <li><a href="#"><i class="fas fa-book"></i> Quản lý bài giảng</a></li>
+                <li><a href="document_manager.html"><i class="fas fa-file-alt"></i> Quản lý tài liệu</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Quản lý học sinh</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Báo cáo & Thống kê</a></li>
+                <li><a href="generateQR.html"><i class="fas fa-qrcode"></i> Tạo mã QR</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Cài đặt</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="dashboard-header">
+                <h1>Tạo Mã QR</h1>
+            </div>
+
+            <div class="qr-container">
+                <textarea class="qr-input" id="qrText" placeholder="Nhập nội dung cần tạo mã QR..." rows="4"></textarea>
+                
+                <div class="qr-buttons">
+                    <button class="qr-button" onclick="generateQR()">
+                        <i class="fas fa-qrcode"></i> Tạo mã QR
+                    </button>
+                    <button class="qr-button" onclick="downloadQR()">
+                        <i class="fas fa-download"></i> Tải xuống
+                    </button>
+                    <button class="qr-button" onclick="copyQR()">
+                        <i class="fas fa-copy"></i> Sao chép
+                    </button>
+                </div>
+
+                <div id="qrcode"></div>
+                <div id="successMessage" class="success-message">Đã sao chép mã QR vào bộ nhớ tạm!</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let qrcode = null;
+
+        function generateQR() {
+            const text = document.getElementById('qrText').value;
+            if (!text) {
+                alert('Vui lòng nhập nội dung cần tạo mã QR!');
+                return;
+            }
+
+            document.getElementById('qrcode').innerHTML = '';
+            qrcode = new QRCode(document.getElementById('qrcode'), {
+                text: text,
+                width: 256,
+                height: 256
+            });
+        }
+
+        function downloadQR() {
+            if (!qrcode) {
+                alert('Vui lòng tạo mã QR trước!');
+                return;
+            }
+
+            const canvas = document.querySelector('#qrcode canvas');
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        async function copyQR() {
+            if (!qrcode) {
+                alert('Vui lòng tạo mã QR trước!');
+                return;
+            }
+
+            const canvas = document.querySelector('#qrcode canvas');
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve));
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 2000);
+            } catch (err) {
+                alert('Không thể sao chép mã QR: ' + err);
+            }
+        }
+
+        // Hiển thị tên giáo viên
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                document.getElementById('teacherName').textContent = `Xin chào, ${currentUser.name}`;
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+    <script src="https://dl.dropboxusercontent.com/scl/fi/bzmccyt3sba7l4ezzq6ap/chatbot.js?rlkey=ghbs9b99bzfnej2dp73bkmo68&st=l1doxl7e&dl=1"></script>
+</body>
+</html>
