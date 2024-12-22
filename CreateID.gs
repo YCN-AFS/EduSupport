@@ -61,19 +61,19 @@ function doPost(e) {
 function handleResponse(e) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    'Access-Control-Max-Age': '3600',
     'Content-Type': 'application/json'
   };
 
-  // Xử lý OPTIONS request (preflight)
-  if (e.parameter.method === 'OPTIONS') {
-    return ContentService.createTextOutput('')
-      .setMimeType(ContentService.MimeType.TEXT)
-      .setHeaders(headers);
-  }
-
   try {
+    if (e.method === 'OPTIONS') {
+      return ContentService.createTextOutput('')
+        .setMimeType(ContentService.MimeType.TEXT)
+        .setHeaders(headers);
+    }
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QR-management');
     if (!sheet) {
       throw new Error('Không tìm thấy sheet "QR-management"');
@@ -113,11 +113,10 @@ function handleResponse(e) {
     }
     
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      error: error.message || 'Unknown error'
-    }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(headers);
+    console.error('Error:', error);
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
   }
 }
 
