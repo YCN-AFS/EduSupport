@@ -1,26 +1,3 @@
-let contentData = [];
-
-fetchSheet
-  .fetch({
-    gSheetId: "1Ou0lWPoS4saNYh8stySSpJc_A3kw9WgZY8JLPWIbv9M",
-    wSheetName: "Trang tính1",
-  })
-  .then((rows) => {
-    contentData = rows;
-    console.log('Loaded content data:', contentData);
-  })
-  .catch(error => {
-    console.error('Error fetching sheet data:', error);
-  });
-
-// Thêm hàm để tìm content theo ID
-function findContentById(id) {
-    return contentData.find(item => item.ID === id);
-}
-
-// Export để scripts.js có thể sử dụng
-window.findContentById = findContentById;
-
 document.addEventListener('DOMContentLoaded', function() {
     const lessonModal = document.getElementById('lessonModal');
     const lessonTitle = document.getElementById('lessonTitle'); 
@@ -38,10 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resourceCards = document.querySelectorAll('.resource-card');
     console.log("Resource Cards:", resourceCards); // Log for debugging
     resourceCards.forEach(card => {
-        const downloadButton = card.querySelector('.btn-download');
-        if (!downloadButton) {
-            console.error("Download button not found in card:", card);
-        }
+        const downloadButton = card.querySelector('.btn-download'); // Select the download button directly
         const subject = card.querySelector('h3').innerText; // Get the subject from the card
 
         // Set the download button's onclick event

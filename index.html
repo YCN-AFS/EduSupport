@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="https://cdn.statically.io/gh/tr1nh/fetch-sheet.js/master/fetch-sheet.min.js"></script>.
+    <script src="https://cdn.statically.io/gh/tr1nh/fetch-sheet.js/master/fetch-sheet.min.js"></script>
     <script src="main.js"></script>
 </head>
 <body>
@@ -44,7 +44,6 @@
         </div>
         <div class="hero-image">
             <img src="image/background3.jpg" alt="Education illustration" style="width: 600px; height: auto;">
-
         </div>
     </section>
 
@@ -120,9 +119,9 @@
                     <div class="resource-info">
                         <h3>Tiếng Anh</h3>
                         <p>Bài tập và tài liệu môn Tiếng Anh</p>
-                        <button class="btn-download">
+                        <a href="https://tienganhnghenoi.vn/30-doan-van-mau-tuyen-chon/" class="btn-download" onclick="window.location.href=this.href">
                             <i class="fas fa-download"></i> Tải xuống
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div class="resource-card">
@@ -132,34 +131,33 @@
                     <div class="resource-info">
                         <h3>KHTN (Lý, Hóa, Sinh)</h3>
                         <p>Tài liệu tổng hợp Vật lý, Hóa học, Sinh học</p>
-                        <button class="btn-download">
+                        <a href="https://www.britannica.com/science/physical-science/Ancient-Middle-Eastern-and-Greek-astronomy" class="btn-download" onclick="window.location.href=this.href">
                             <i class="fas fa-download"></i> Tải xuống
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div class="resource-card">
                     <div class="resource-preview">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUZeWvAFl4bo75n3cKZDcrelgTPNTGpszESg&s">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUZeWvAFl4bo75n3cKZDcrelgTPNTGpszESg&s" alt="Math preview">
                     </div>
                     <div class="resource-info">
                         <h3>Toán</h3>
                         <p>Bài tập và tài liệu môn Toán nâng cao</p>
-                        <button class="btn-download"><a href="https://online.pubhtml5.com/zrtu/agzg/#p=72"></a>
+                        <a href="https://viblo.asia/p/ocr-nhan-dang-bieu-thuc-toan-hoc-viet-tay-voi-dense-msa-WAyK8Gon5xX" class="btn-download" onclick="window.location.href=this.href">
                             <i class="fas fa-download"></i> Tải xuống
                         </a>
-                        </button>
                     </div>
                 </div>
                 <div class="resource-card">
                     <div class="resource-preview">
-                        <img src="https://img.freepik.com/free-vector/watercolor-literature-illustration_52683-81541.jpg">
+                        <img src="https://img.freepik.com/free-vector/watercolor-literature-illustration_52683-81541.jpg" alt="Literature preview">
                     </div>
                     <div class="resource-info">
                         <h3>Ngữ Văn</h3>
                         <p>Tài liệu và bài tập môn Ngữ Văn</p>
-                        <button class="btn-download">
+                        <a href="https://hocvanchihien.com/Vn/120-han-dinh-van-hoc-can-moi-bai-viet-News-4819" class="btn-download" onclick="window.location.href=this.href">
                             <i class="fas fa-download"></i> Tải xuống
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -210,6 +208,44 @@
             </form>
         </div>
     </div>
+    
+    <div id="lessonModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="lessonTitle">Tên Bài Học</h2>
+            <p id="lessonDescription">Mô tả bài học</p>
+            <ul id="lessonList">
+                <li>Tiếng Anh:
+                    <ul>
+                        <li>Chương 1</li>
+                        <li>Chương 2</li>
+                        <li>Chương 3</li>
+                    </ul>
+                </li>
+                <li>KHTN (Lý, Hóa, Sinh):
+                    <ul>
+                        <li>Chương 1</li>
+                        <li>Chương 2</li>
+                        <li>Chương 3</li>
+                    </ul>
+                </li>
+                <li>Toán:
+                    <ul>
+                        <li>Chương 1</li>
+                        <li>Chương 2</li>
+                        <li>Chương 3</li>
+                    </ul>
+                </li>
+                <li>Ngữ Văn:
+                    <ul>
+                        <li>Chương 1</li>
+                        <li>Chương 2</li>
+                        <li>Chương 3</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="scripts.js"></script>
@@ -233,53 +269,7 @@
         // Cập nhật hiển thị khi trang được tải
         document.addEventListener('DOMContentLoaded', updateAuthButtons);
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-    const resourceGrid = document.querySelector('.resource-grid');
-    const prevBtn = document.querySelector('.scroll-btn.prev');
-    const nextBtn = document.querySelector('.scroll-btn.next');
-    const cardWidth = 320; // Width of card + margin
-    let currentPosition = 0;
+        <script src="https://dl.dropboxusercontent.com/scl/fi/bzmccyt3sba7l4ezzq6ap/chatbot.js?rlkey=ghbs9b99bzfnej2dp73bkmo68&st=l1doxl7e&dl=1"></script>
 
-    // Tính toán số lượng card có thể hiển thị cùng lúc
-    const containerWidth = resourceGrid.parentElement.offsetWidth - 80; // Trừ đi padding
-    const visibleCards = Math.floor(containerWidth / cardWidth);
-    const maxScroll = (document.querySelectorAll('.resource-card').length - visibleCards) * cardWidth;
-
-    function updateScrollButtons() {
-        prevBtn.style.opacity = currentPosition === 0 ? '0.5' : '1';
-        nextBtn.style.opacity = currentPosition <= -maxScroll ? '0.5' : '1';
-    }
-
-    prevBtn.addEventListener('click', () => {
-        if (currentPosition < 0) {
-            currentPosition += cardWidth;
-            if (currentPosition > 0) currentPosition = 0;
-            resourceGrid.style.transform = `translateX(${currentPosition}px)`;
-            updateScrollButtons();
-        }
-    });
-
-    nextBtn.addEventListener('click', () => {
-        if (currentPosition > -maxScroll) {
-            currentPosition -= cardWidth;
-            if (currentPosition < -maxScroll) currentPosition = -maxScroll;
-            resourceGrid.style.transform = `translateX(${currentPosition}px)`;
-            updateScrollButtons();
-        }
-    });
-
-    // Initial button state
-    updateScrollButtons();
-
-    // Update on window resize
-    window.addEventListener('resize', () => {
-        currentPosition = 0;
-        resourceGrid.style.transform = `translateX(0)`;
-        updateScrollButtons();
-    });
-});
-    </script>
-    <script src="https://dl.dropboxusercontent.com/scl/fi/bzmccyt3sba7l4ezzq6ap/chatbot.js?rlkey=ghbs9b99bzfnej2dp73bkmo68&st=l1doxl7e&dl=1"></script>
 </body>
 </html>

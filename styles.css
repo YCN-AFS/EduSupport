@@ -399,7 +399,8 @@ body {
 }
 
 .btn-download:hover {
-    background: darken(var(--accent-color), 10%);
+    background: darken(var(--dark-gray));
+    color: #000;
 }
 
 /* Footer */
@@ -958,3 +959,33 @@ body {
         width: 100%;
     }
 }
+/* Styles for the lesson list */
+#lessonList {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0; /* Remove padding */
+}
+
+#lessonList li {
+    margin: 10px 0; /* Space between list items */
+    padding: 10px; /* Padding for list items */
+    background-color: #f1f1f1; /* Light background for list items */
+    border-radius: 8px; /* Rounded corners */
+    display: flex; /* Flexbox for alignment */
+    justify-content: space-between; /* Space between text and button */
+    align-items: center; /* Center items vertically */
+}
+
+#lessonList li button {
+    background-color: #007bff; /* Button color */
+    color: white; /* Button text color */
+    border: none; /* Remove border */
+    padding: 8px 12px; /* Padding for button */
+    border-radius: 5px; /* Rounded corners for button */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth transition */
+}
+
+#lessonList li button:hover {
+    background-color: #0056b3; /* Darker button color on hover */
+}
+
