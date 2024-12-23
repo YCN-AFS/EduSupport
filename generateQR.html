@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="static\css\teacher.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="static/css/generateQR.css">
+    <script src="https://cdn.statically.io/gh/tr1nh/fetch-sheet.js/master/fetch-sheet.min.js"></script>
 </head>
 <body>
     <!-- Giữ nguyên phần Navigation từ teacher.html -->
@@ -91,19 +92,8 @@
             }
 
             try {
-                // Xóa mã QR cũ
-                document.getElementById('qrcode').innerHTML = '';
-
-                // Tạo nội dung cho QR code
-                currentQRText = `${lessonName}\n${lessonContent}`;
-
-                // Tạo mã QR trực tiếp
-                const qrImage = document.createElement('img');
-                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(currentQRText)}&size=256x256`;
-                document.getElementById('qrcode').appendChild(qrImage);
-
-                // Lưu vào Google Sheets (không chờ response)
-                fetch(GOOGLE_SCRIPT_URL, {
+                // Gửi dữ liệu đến Google Script
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
@@ -114,6 +104,27 @@
                         content: lessonContent
                     })
                 });
+
+                // Đợi 1 giây để đảm bảo dữ liệu đã được cập nhật trong sheet
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Lấy ID mới nhất từ Google Sheet
+                const sheetData = await fetchSheet.fetch({
+                    gSheetId: '1Ou0lWPoS4saNYh8stySSpJc_A3kw9WgZY8JLPWIbv9M',
+                    wSheetName: 'QR-management',
+                });
+
+                // Lấy ID từ dòng cuối cùng
+                const latestRow = sheetData[sheetData.length - 1];
+                const qrId = latestRow.ID; // Điều chỉnh tên cột theo sheet của bạn
+
+                // Xóa mã QR cũ
+                document.getElementById('qrcode').innerHTML = '';
+
+                // Tạo mã QR với ID mới nhất
+                const qrImage = document.createElement('img');
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrId)}&size=256x256`;
+                document.getElementById('qrcode').appendChild(qrImage);
 
                 // Clear input fields
                 document.getElementById('lessonName').value = '';
