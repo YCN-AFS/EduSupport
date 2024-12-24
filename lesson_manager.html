@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/teacher.css">
     <link rel="stylesheet" href="static/css/lesson_manager.css">
+    <script src="https://cdn.statically.io/gh/tr1nh/fetch-sheet.js/master/fetch-sheet.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -72,53 +73,168 @@
 
     <script src="auth.js"></script>
     <script>
-        // Hiển thị tên giáo viên
+        // ID của Google Spreadsheet của bạn
+        const SHEET_ID = '1Ou0lWPoS4saNYh8stySSpJc_A3kw9WgZY8JLPWIbv9M';
+        
+        // Thêm biến cho API URL
+        const CREATE_LECTURE_API = 'https://script.google.com/macros/s/AKfycbwM4z3MkTKlaWHFtd7ffRQdP3V5UwIPMavyc0YHMMU0XEp1uiN-dV_8uXtOKrLgIP3wFw/exec'; // URL của CreateLecture.gs sau khi deploy
+        
+        // Load dữ liệu bài giảng từ spreadsheet
+        async function loadLectures() {
+            try {
+                const rows = await fetchSheet.fetch({
+                    gSheetId: SHEET_ID,
+                    wSheetName: 'Lecture-management'
+                });
+                
+                console.log('All rows:', rows);
+                
+                const grid = document.getElementById('lessonGrid');
+                grid.innerHTML = '';
+
+                // Xử lý tất cả các hàng (không bỏ qua hàng nào)
+                rows.forEach((row, index) => {
+                    console.log(`Row ${index}:`, row);
+                    
+                    const lecture = {
+                        id: row['ID-LC'],
+                        name: row['Name-LC'],
+                        content: row['Content-LC']
+                    };
+                    console.log(`Processed lecture ${index}:`, lecture);
+                    
+                    const lectureElement = document.createElement('div');
+                    lectureElement.className = 'grid-item';
+                    lectureElement.innerHTML = `
+                        <h3>${lecture.name}</h3>
+                        <iframe src="${lecture.content}/embed" allowfullscreen></iframe>
+                        <button class="delete-btn" onclick="deleteLesson('${lecture.id}')">Xóa</button>
+                    `;
+                    grid.appendChild(lectureElement);
+                });
+            } catch (error) {
+                console.error('Error loading lectures:', error);
+            }
+        }
+
+        // Load dữ liệu khi trang được tải
         document.addEventListener('DOMContentLoaded', () => {
+            loadLectures();
+            
+            // Hiển thị tên giáo viên nếu đã đăng nhập
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (currentUser) {
                 document.getElementById('teacherName').textContent = `Xin chào, ${currentUser.name}`;
             } else {
-                window.location.href = 'login.html'; // Chuyển về trang đăng nhập nếu chưa đăng nhập
+                window.location.href = 'login.html';
             }
         });
 
-        // Open modal
+        // Thêm hàm submitFormData
+        function submitFormData(formData) {
+            return new Promise((resolve, reject) => {
+                // Tạo một iframe ẩn
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                // Tạo form trong iframe
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = CREATE_LECTURE_API;
+                
+                // Thêm action parameter
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'addLecture';
+                form.appendChild(actionInput);
+
+                // Thêm các trường dữ liệu
+                Object.keys(formData).forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = formData[key];
+                    form.appendChild(input);
+                });
+
+                // Xử lý kết quả
+                iframe.onload = () => {
+                    try {
+                        document.body.removeChild(iframe);
+                        resolve({ success: true });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                // Submit form
+                iframe.contentDocument.body.appendChild(form);
+                form.submit();
+            });
+        }
+
+        // Cập nhật xử lý form submission
+        document.getElementById('createLessonForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const title = document.getElementById('lessonTitle').value;
+            const url = document.getElementById('lessonUrl').value;
+            
+            try {
+                // Tạo ID ngẫu nhiên cho bài giảng
+                const lectureId = 'LC' + Math.random().toString(36).substr(2, 9);
+                
+                // Gọi dữ liệu qua form
+                await submitFormData({
+                    id: lectureId,
+                    name: title,
+                    content: url
+                });
+
+                // Reload lại danh sách bài giảng
+                await loadLectures();
+                
+                // Đóng modal và reset form
+                document.getElementById('createLessonModal').style.display = 'none';
+                document.getElementById('createLessonForm').reset();
+                
+                // Hiển thị thông báo thành công
+                alert('Tạo bài giảng thành công!');
+                
+            } catch (error) {
+                console.error('Error creating lecture:', error);
+                alert('Có lỗi xảy ra khi tạo bài giảng: ' + error.message);
+            }
+        }
+
+        // Xóa bài giảng (tạm thời chỉ hiển thị thông báo)
+        function deleteLesson(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa bài giảng này?')) {
+                alert('Chức năng xóa bài giảng đang được phát triển');
+            }
+        }
+
+        // Modal controls
         document.getElementById('createLessonBtn').onclick = function() {
             document.getElementById('createLessonModal').style.display = 'block';
         }
 
-        // Close modal
         document.getElementById('closeModal').onclick = function() {
             document.getElementById('createLessonModal').style.display = 'none';
         }
 
-        // Handle form submission
-        document.getElementById('createLessonForm').onsubmit = function(event) {
-            event.preventDefault();
-            const title = document.getElementById('lessonTitle').value;
-            const url = document.getElementById('lessonUrl').value;
-
-            // Create a new lesson item
-            const newLesson = document.createElement('div');
-            newLesson.className = 'grid-item';
-            newLesson.innerHTML = `
-                <h3>${title}</h3>
-                <iframe src="${url}/embed" allowfullscreen></iframe>
-                <button class="delete-btn" onclick="deleteLesson(this)">Xóa</button>
-            `;
-
-            // Add the new lesson to the grid
-            document.getElementById('lessonGrid').appendChild(newLesson);
-
-            // Close modal
-            document.getElementById('createLessonModal').style.display = 'none';
-            document.getElementById('createLessonForm').reset(); // Reset form
+        // Đóng modal khi click bên ngoài
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('createLessonModal')) {
+                document.getElementById('createLessonModal').style.display = 'none';
+            }
         }
 
-        // Function to delete a lesson
-        function deleteLesson(button) {
-            const lessonItem = button.parentElement; // Get the parent grid item
-            lessonItem.remove(); // Remove the lesson item from the grid
+        // Hàm logout
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
         }
     </script>
 </body>
