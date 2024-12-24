@@ -29,7 +29,10 @@
                 <button class="btn-register" onclick="window.location.href='register.html'">Đăng ký</button>
             </div>
             <div class="logged-in" style="display: none;">
-                <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+                <div class="user-controls">
+                    <button class="btn-manage" onclick="window.location.href='teacher.html'">Quản lý</button>
+                    <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -209,13 +212,16 @@
         function updateAuthButtons() {
             const loggedInDiv = document.querySelector('.logged-in');
             const loggedOutDiv = document.querySelector('.logged-out');
+            const adminLink = document.querySelector('.admin-link');
             
             if (isLoggedIn()) {
                 loggedInDiv.style.display = 'block';
                 loggedOutDiv.style.display = 'none';
+                adminLink.style.display = 'block';
             } else {
                 loggedInDiv.style.display = 'none';
                 loggedOutDiv.style.display = 'block';
+                adminLink.style.display = 'none';
             }
         }
 
