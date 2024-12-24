@@ -62,10 +62,10 @@
             <span class="close" id="closeModal">&times;</span>
             <h2>Tạo Bài Giảng Mới</h2>
             <form id="createLessonForm">
-                <label for="lessonTitle">Tiêu đề:</label>
-                <input type="text" id="lessonTitle" required>
                 <label for="lessonUrl">URL Google Slides:</label>
                 <input type="url" id="lessonUrl" required placeholder="https://docs.google.com/presentation/...">
+                <label for="lessonTitle">Tiêu đề:</label>
+                <input type="text" id="lessonTitle" required>
                 <button type="submit" class="btn-primary">Tạo bài giảng</button>
             </form>
         </div>
@@ -106,8 +106,8 @@
                     const lectureElement = document.createElement('div');
                     lectureElement.className = 'grid-item';
                     lectureElement.innerHTML = `
-                        <h3>${lecture.name}</h3>
                         <iframe src="${lecture.content}/embed" allowfullscreen></iframe>
+                        <h3>${lecture.name}</h3>
                         <button class="delete-btn" onclick="deleteLesson('${lecture.id}')">Xóa</button>
                     `;
                     grid.appendChild(lectureElement);
