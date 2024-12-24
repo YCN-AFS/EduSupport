@@ -111,55 +111,8 @@
     <section id="resources" class="resources">
         <h2>Tài Nguyên Học Tập</h2>
         <div class="resource-container">
-            <div class="resource-grid">
-                <div class="resource-card">
-                    <div class="resource-preview">
-                        <img src="https://media.istockphoto.com/id/1047570732/vi/vec-to/ti%E1%BA%BFng-anh.jpg?s=612x612&w=0&k=20&c=TeGfoGzmcloQfFxk2z7EhPw4KX4b3ys7f4s3aaAqtzg=" alt="English preview">
-                    </div>
-                    <div class="resource-info">
-                        <h3>Tiếng Anh</h3>
-                        <p>Bài tập và tài liệu môn Tiếng Anh</p>
-                        <a href="https://tienganhnghenoi.vn/30-doan-van-mau-tuyen-chon/" class="btn-download" onclick="window.location.href=this.href">
-                            <i class="fas fa-download"></i> Tải xuống
-                        </a>
-                    </div>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-preview">
-                        <img src="https://as1.ftcdn.net/jpg/00/90/77/34/1000_F_90773453_cn3FeqDxXij9SkZp7Caft0k91zHJGn5j.jpg" alt="Science preview">
-                    </div>
-                    <div class="resource-info">
-                        <h3>KHTN (Lý, Hóa, Sinh)</h3>
-                        <p>Tài liệu tổng hợp Vật lý, Hóa học, Sinh học</p>
-                        <a href="https://www.britannica.com/science/physical-science/Ancient-Middle-Eastern-and-Greek-astronomy" class="btn-download" onclick="window.location.href=this.href">
-                            <i class="fas fa-download"></i> Tải xuống
-                        </a>
-                    </div>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-preview">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUZeWvAFl4bo75n3cKZDcrelgTPNTGpszESg&s" alt="Math preview">
-                    </div>
-                    <div class="resource-info">
-                        <h3>Toán</h3>
-                        <p>Bài tập và tài liệu môn Toán nâng cao</p>
-                        <a href="https://viblo.asia/p/ocr-nhan-dang-bieu-thuc-toan-hoc-viet-tay-voi-dense-msa-WAyK8Gon5xX" class="btn-download" onclick="window.location.href=this.href">
-                            <i class="fas fa-download"></i> Tải xuống
-                        </a>
-                    </div>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-preview">
-                        <img src="https://img.freepik.com/free-vector/watercolor-literature-illustration_52683-81541.jpg" alt="Literature preview">
-                    </div>
-                    <div class="resource-info">
-                        <h3>Ngữ Văn</h3>
-                        <p>Tài liệu và bài tập môn Ngữ Văn</p>
-                        <a href="https://hocvanchihien.com/Vn/120-han-dinh-van-hoc-can-moi-bai-viet-News-4819" class="btn-download" onclick="window.location.href=this.href">
-                            <i class="fas fa-download"></i> Tải xuống
-                        </a>
-                    </div>
-                </div>
+            <div class="resource-grid" id="resourceGrid">
+                <!-- Các tài nguyên sẽ được thêm vào đây -->
             </div>
         </div>
     </section>
@@ -270,6 +223,53 @@
         document.addEventListener('DOMContentLoaded', updateAuthButtons);
     </script>
         <script src="https://dl.dropboxusercontent.com/scl/fi/bzmccyt3sba7l4ezzq6ap/chatbot.js?rlkey=ghbs9b99bzfnej2dp73bkmo68&st=l1doxl7e&dl=1"></script>
+
+    <script src="https://cdn.statically.io/gh/tr1nh/fetch-sheet.js/master/fetch-sheet.min.js"></script>
+    <script>
+        const SHEET_ID = '1Ou0lWPoS4saNYh8stySSpJc_A3kw9WgZY8JLPWIbv9M'; // ID của Google Spreadsheet
+
+        // Load dữ liệu tài nguyên từ spreadsheet
+        async function loadResources() {
+            try {
+                const rows = await fetchSheet.fetch({
+                    gSheetId: SHEET_ID,
+                    wSheetName: 'Lecture-management'
+                });
+
+                const grid = document.getElementById('resourceGrid');
+                grid.innerHTML = ''; // Xóa nội dung cũ
+
+                // Giới hạn hiển thị chỉ 5 resource-card
+                const limitedRows = rows.slice(0, 5); // Lấy 5 hàng đầu tiên
+
+                // Xử lý tất cả các hàng
+                limitedRows.forEach((row) => {
+                    const resource = {
+                        id: row['ID-LC'],
+                        name: row['Name-LC'],
+                        content: row['Content-LC'],
+                    };
+
+                    const resourceElement = document.createElement('div');
+                    resourceElement.className = 'resource-card';
+                    resourceElement.innerHTML = `
+                        <div class="resource-preview">
+                            <iframe src="${resource.content}/embed" allowfullscreen></iframe>
+                        </div>
+                        <div class="resource-info">
+                            <h3>${resource.name}</h3>
+                        </div>
+                    `;
+                    grid.appendChild(resourceElement);
+                });
+            } catch (error) {
+                console.error('Error loading resources:', error);
+            }
+        }
+
+        // Load dữ liệu khi trang được tải
+        document.addEventListener('DOMContentLoaded', loadResources);
+    </script>
 
 </body>
 </html>

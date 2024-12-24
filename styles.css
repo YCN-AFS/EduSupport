@@ -340,8 +340,9 @@ body {
 }
 
 .resource-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
@@ -352,37 +353,56 @@ body {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: var(--box-shadow);
-    transition: var(--transition);
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
 }
 
 .resource-card:hover {
-    transform: translateY(-5px);
+    transform: scale(1.05);
 }
 
 .resource-preview {
-    width: 100%;
-    height: 200px;
-    overflow: hidden;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--light-gray);
 }
 
-.resource-preview img {
+.resource-preview iframe {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: 200px;
+    border: none;
 }
 
 .resource-info {
-    padding: 1.5rem;
+    padding: 0.1rem;
+    text-align: center;
+    background: var(--primary-color);
+    color: var(--white);
+    border-top: 1px solid var(--dark-gray);
 }
 
 .resource-info h3 {
-    color: var(--text-color);
-    margin-bottom: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
 }
 
 .resource-info p {
-    color: var(--dark-gray);
-    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+.resource-card img {
+    max-width: 100%;
+    height: auto;
+}
+
+.resource-card:hover {
+    transform: none;
 }
 
 .btn-download {
