@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Bài Giảng - EduSupport</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/teacher.css">
+    <link rel="stylesheet" href="static/css/lesson_manager.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div>
+            <a href="index.html" class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>EduSupport - Quản Lý</span>
+            </a>
+        </div>
+        <div class="nav-profile">
+            <span id="teacherName" class="teacher-name">Xin chào, Giáo viên</span>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Đăng xuất
+            </button>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="teacher.html"><i class="fas fa-home"></i> Tổng quan</a></li>
+                <li><a href="lesson_manager.html" class="active"><i class="fas fa-book"></i> Quản lý bài giảng</a></li>
+                <li><a href="document_manager.html"><i class="fas fa-file-alt"></i> Quản lý tài liệu</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Quản lý học sinh</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Báo cáo & Thống kê</a></li>
+                <li><a href="generateQR.html"><i class="fas fa-qrcode"></i> Tạo mã QR</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Cài đặt</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="dashboard-header">
+                <h1>Quản Lý Bài Giảng</h1>
+                <button class="btn-primary" id="createLessonBtn">
+                    <i class="fas fa-plus"></i> Tạo bài giảng mới
+                </button>
+            </div>
+
+            <div class="grid-container" id="lessonGrid">
+                <!-- Các bài giảng sẽ được thêm vào đây -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for creating a new lesson -->
+    <div id="createLessonModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Tạo Bài Giảng Mới</h2>
+            <form id="createLessonForm">
+                <label for="lessonTitle">Tiêu đề:</label>
+                <input type="text" id="lessonTitle" required>
+                <label for="lessonUrl">URL Google Slides:</label>
+                <input type="url" id="lessonUrl" required placeholder="https://docs.google.com/presentation/...">
+                <button type="submit" class="btn-primary">Tạo bài giảng</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Hiển thị tên giáo viên
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                document.getElementById('teacherName').textContent = `Xin chào, ${currentUser.name}`;
+            } else {
+                window.location.href = 'login.html'; // Chuyển về trang đăng nhập nếu chưa đăng nhập
+            }
+        });
+
+        // Open modal
+        document.getElementById('createLessonBtn').onclick = function() {
+            document.getElementById('createLessonModal').style.display = 'block';
+        }
+
+        // Close modal
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('createLessonModal').style.display = 'none';
+        }
+
+        // Handle form submission
+        document.getElementById('createLessonForm').onsubmit = function(event) {
+            event.preventDefault();
+            const title = document.getElementById('lessonTitle').value;
+            const url = document.getElementById('lessonUrl').value;
+
+            // Create a new lesson item
+            const newLesson = document.createElement('div');
+            newLesson.className = 'grid-item';
+            newLesson.innerHTML = `
+                <h3>${title}</h3>
+                <iframe src="${url}/embed" allowfullscreen></iframe>
+                <button class="delete-btn" onclick="deleteLesson(this)">Xóa</button>
+            `;
+
+            // Add the new lesson to the grid
+            document.getElementById('lessonGrid').appendChild(newLesson);
+
+            // Close modal
+            document.getElementById('createLessonModal').style.display = 'none';
+            document.getElementById('createLessonForm').reset(); // Reset form
+        }
+
+        // Function to delete a lesson
+        function deleteLesson(button) {
+            const lessonItem = button.parentElement; // Get the parent grid item
+            lessonItem.remove(); // Remove the lesson item from the grid
+        }
+    </script>
+</body>
+</html>
