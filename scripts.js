@@ -199,7 +199,7 @@ function handleQRCode(data) {
                     url: contentItem.content
                 });
             } else {
-                // Xử lý nội dung text như cũ
+                // X��� lý nội dung text như cũ
                 const contentPreview = document.getElementById('content-preview');
                 contentPreview.innerHTML = `
                     <div class="content-text">
@@ -499,6 +499,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.querySelector('.scroll-btn.prev');
     const nextBtn = document.querySelector('.scroll-btn.next');
     const cards = document.querySelectorAll('.resource-card');
+    
+    // Add guard clause to prevent errors if no cards exist
+    if (!cards.length) return;
     
     let currentIndex = 0;
     const cardWidth = cards[0].offsetWidth + 20; // width + gap

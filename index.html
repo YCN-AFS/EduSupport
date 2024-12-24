@@ -217,11 +217,15 @@
             if (isLoggedIn()) {
                 loggedInDiv.style.display = 'block';
                 loggedOutDiv.style.display = 'none';
-                adminLink.style.display = 'block';
+                if (adminLink) {
+                    adminLink.style.display = 'block';
+                }
             } else {
                 loggedInDiv.style.display = 'none';
                 loggedOutDiv.style.display = 'block';
-                adminLink.style.display = 'none';
+                if (adminLink) {
+                    adminLink.style.display = 'none';
+                }
             }
         }
 
